@@ -1,0 +1,86 @@
+# Maintainer: Rohan <https://github.com/rohan-git-repo>
+pkgname=brightness-controller-wayland-git
+_pkgname=Brightness-controller-wayland
+pkgver=2.4.0.r0.g0000000
+pkgrel=1
+pkgdesc="GUI brightness and RGB controller for Linux supporting Wayland and X11"
+arch=('all')
+url="https://github.com/rohan-git-repo/Brightness-controller-wayland"
+license=('GPL-3.0-or-later')
+depends=(
+  'python3'
+  'python3-pyqt5'
+  'qtwayland5'
+  'brightnessctl'
+)
+optdepends=(
+  'ddcutil: Hardware brightness and RGB control for external HDMI/DP monitors'
+  'gammastep: Software RGB gamma control on wlroots compositors (Sway, Hyprland)'
+)
+makedepends=(
+  'git'
+  'python3-build'
+  'python3-installer'
+  'python3-poetry-core'
+  'python3-wheel'
+)
+provides=('brightness-controller')
+conflicts=('brightness-controller' 'brightness-controller-git')
+source=("git+${url}.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "${srcdir}/${_pkgname}"
+  local _ver
+  _ver=$(grep -oP "__version__\s*=\s*['\"]\K[^'\"]+" brightness_controller_linux/__init__.py || echo "2.4.0")
+  printf "%s.r%s.g%s" "${_ver}" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd "${srcdir}/${_pkgname}"
+  python3 -m build --wheel --no-isolation
+}
+
+package() {
+  cd "${srcdir}/${_pkgname}"
+
+  # 1. Install the Python wheel into pkgdir
+  python3 -m installer --destdir="${pkgdir}" dist/*.whl
+
+  # 2. Install executable launcher for brightness-controller
+  local _site_packages
+  _site_packages=$(python3 -c "import site; print(site.getsitepackages()[0])")
+  install -dm755 "${pkgdir}/usr/bin"
+  cat << EOF > "${pkgdir}/usr/bin/brightness-controller"
+#!/usr/bin/env bash
+export PYTHONPATH="${_site_packages}/brightness_controller_linux:${_site_packages}:\${PYTHONPATH}"
+exec /usr/bin/python3 "${_site_packages}/brightness_controller_linux/init.py" "\$@"
+EOF
+  chmod 755 "${pkgdir}/usr/bin/brightness-controller"
+
+  # 3. Install brightness-reset script
+  install -Dm755 "brightness_controller_linux/brightness-reset" \
+    "${pkgdir}/usr/bin/brightness-reset"
+
+  # 4. Install application icon
+  install -Dm644 "brightness_controller_linux/icons/brightness-controller.svg" \
+    "${pkgdir}/usr/share/icons/hicolor/scalable/apps/brightness-controller.svg"
+
+  # 5. Create and install .desktop file for app launchers
+  install -dm755 "${pkgdir}/usr/share/applications"
+  cat << 'EOF' > "${pkgdir}/usr/share/applications/brightness-controller.desktop"
+[Desktop Entry]
+Name=Brightness Controller
+Comment=Control display brightness and RGB gamma on Wayland and X11
+Exec=brightness-controller
+Icon=brightness-controller
+Terminal=false
+Type=Application
+Categories=Utility;Settings;HardwareSettings;Qt;
+Keywords=brightness;backlight;display;gamma;wayland;rgb;
+StartupWMClass=init.py
+EOF
+
+  # 6. Install documentation
+  install -Dm644 "README.md" "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+}
