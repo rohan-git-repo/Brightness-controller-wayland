@@ -8,6 +8,8 @@ cd Brightness-controller-wayland
 
 cd packaging/arch \&\& makepkg -si
 
+![](image.png)
+
 ## Dev Docs
 
 ### Installing Dependencies
