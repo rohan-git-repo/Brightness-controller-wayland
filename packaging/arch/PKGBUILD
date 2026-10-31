@@ -1,7 +1,7 @@
 # Maintainer: Rohan <https://github.com/rohan-git-repo>
 pkgname=brightness-controller-wayland-git
 _pkgname=Brightness-controller-wayland
-pkgver=2.3.6.r0.g0000000
+pkgver=2.3.6.r344.g152327e
 pkgrel=1
 pkgdesc="GUI brightness and RGB controller for Linux supporting Wayland and X11"
 arch=('any')
