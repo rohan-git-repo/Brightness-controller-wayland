@@ -17,6 +17,19 @@
 # along with Brightness Controller.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+
+import os
+import sys
+
+# Force Qt5 to prefer native Wayland, falling back to X11 (xcb) if needed
+os.environ.setdefault("QT_QPA_PLATFORM", "wayland;xcb")
+
+from PyQt5 import QtGui, QtCore, QtWidgets
+# ... rest of init.py remains unchanged
+
 import sys
 import getpass
 from os import path, remove, makedirs
