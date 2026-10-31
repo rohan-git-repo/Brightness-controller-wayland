@@ -1,5 +1,10 @@
 # Brightness Controller for Linux
 
+# Install on Arch Linux
+git clone
+cd Brightness-controller-wayland
+makepkg -si
+
 ## Dev Docs
 
 ### Installing Dependencies
